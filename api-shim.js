@@ -86,6 +86,23 @@
   });
   window.addEventListener('appinstalled', function () { var x = document.querySelectorAll('button'); });
 
+
+  /* Barra do sistema (topo/rodapé no celular) acompanha a cor do tema escolhido no app */
+  function syncTheme() {
+    try {
+      var c = getComputedStyle(document.documentElement).getPropertyValue('--bg0').trim() || getComputedStyle(document.body).backgroundColor;
+      if (!c) return;
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (!m) { m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
+      if (m.content !== c) m.content = c;
+    } catch (e) {}
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    syncTheme();
+    try { new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'style', 'class'] }); } catch (e) {}
+    setTimeout(syncTheme, 500);
+  });
+
   window.google = { script: { run: mk(null, null) } };
   window.PWA_TROCAR_SERVIDOR = function () { try { localStorage.removeItem('pb_api'); } catch (e) {} location.reload(); };
 })();

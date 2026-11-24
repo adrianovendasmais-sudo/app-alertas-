@@ -1,18 +1,21 @@
 <!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Agenda e Alertas</title>
-<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b2a3a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Agenda"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="icon" href="favicon-32.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><script src="config.js"></script><script src="api-shim.js"></script>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0c2436"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Agenda"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="icon" href="favicon-32.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><script src="config.js"></script><script src="api-shim.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <script>
 window.addEventListener('error',function(e){var m=document.getElementById('main');if(m&&!m.dataset.ok&&e&&e.message&&!/Script error/.test(e.message)){var d='';try{var ss=[].slice.call(document.scripts).filter(function(s){return !s.src&&s.textContent.length>20000}),s=ss[ss.length-1];if(s){var t=s.textContent,L=t.split('\n');d='\n\nDIAGNÓSTICO: ARQUIVO=v24nov-A tamanho='+t.length+' linhas='+L.length+' erro em linha='+e.lineno+' coluna='+e.colno;if(/Invalid or unexpected|SyntaxError/.test(e.message)){var f=-1;for(var n=1;n<=L.length;n++){try{new Function(L.slice(0,n).join('\n'))}catch(x){if(!/end of input|Unterminated template|missing \)|Unexpected end|Unexpected token '?}'?|Unexpected token '?\)'?|Unexpected token '?\]'?|after (argument|property)|Unexpected string|Unexpected identifier|Unexpected template|Unexpected token '?(,|:|=>)'?|Unexpected number|Invalid or unexpected token/.test(x.message)||/Invalid or unexpected token/.test(x.message)){f=n;d+='\nprimeira linha com erro (do script)='+n+' msg='+x.message;break}}}if(f>0)d+='\nTRECHO: '+L[f-1].slice(0,260)}d+='\nL[lineno-1]: '+(L[e.lineno-1]||'').slice(0,160)+'\nL[lineno-103]: '+(L[e.lineno-103]||'').slice(0,160)}}catch(x){d+='\n(diagnóstico falhou: '+x.message+')'}m.innerHTML='<pre style="color:#ff8a8a;padding:20px;white-space:pre-wrap">Erro ao iniciar: '+e.message+' (linha '+e.lineno+')'+d.replace(/</g,'&lt;')+'</pre>'}});
-function L(u,cb){var s=document.createElement('script');s.src=u[0];s.onload=function(){cb&&cb()};s.onerror=function(){if(u.length>1)L(u.slice(1),cb)};document.head.appendChild(s)}
-window.addEventListener('load',function(){
-if(!window.Chart)L(['https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js'],function(){try{render()}catch(e){}});
-if(!window.XLSX)L(['https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js']);
-if(!window.jspdf)L(['https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js'],function(){L(['https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js'])});
-else if(!(window.jspdf.jsPDF.API.autoTable||window.autoTable))L(['https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js']);
-});
+/* Bibliotecas pesadas (PDF e planilhas) só são baixadas depois que o app abriu */
+var LIBS={pdf:['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js'],
+ at:['https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js','https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js'],
+ xl:['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js']},LP={};
+function L(u,cb){var s=document.createElement('script');s.src=u[0];s.onload=function(){cb&&cb()};s.onerror=function(){if(u.length>1)L(u.slice(1),cb);else cb&&cb()};document.head.appendChild(s)}
+function loadLibs(){if(LP.go)return;LP.go=1;L(LIBS.pdf,function(){L(LIBS.at)});L(LIBS.xl)}
+['pointerdown','keydown','touchstart'].forEach(function(t){window.addEventListener(t,loadLibs,{once:true,passive:true})});
+window.addEventListener('load',function(){setTimeout(loadLibs,2500)});
+document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('[data-a]');if(!t||t.__go){if(t)t.__go=0;return}var a=t.getAttribute('data-a')||'';if(!/pdf|xl|import/i.test(a))return;
+var ok=function(){return window.jspdf&&window.XLSX&&(window.jspdf.jsPDF.API.autoTable||window.autoTable)};if(ok())return;
+e.stopPropagation();e.preventDefault();t.style.opacity='.55';loadLibs();var n=0,iv=setInterval(function(){if(ok()||++n>60){clearInterval(iv);t.style.opacity='';t.__go=1;t.click()}},250)},true);
 </script>
 <style id="app">
 :root{--p:var(--p1);--nav:200px}
