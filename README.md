@@ -4,7 +4,7 @@ App instalável (celular e computador) que roda no **GitHub Pages** e usa o seu 
 Os dados, usuários e senhas continuam na mesma planilha de antes.
 
 ## Conteúdo
-- `index.html`, `config.js`, `api-shim.js`, `sw.js`, `manifest.webmanifest`, `icons/` → vão para o GitHub
+- todos os arquivos da raiz (`index.html`, `config.js`, `api-shim.js`, `sw.js`, `manifest.webmanifest`, `*.png`) → vão para o GitHub
 - `apps-script/Code.gs` → vai para o **Apps Script** (não precisa subir no GitHub, mas pode)
 
 ## Passo 1 — Atualizar o Apps Script
