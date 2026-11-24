@@ -1,0 +1,27 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diagnóstico do PWA</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>body{font:15px/1.5 system-ui,sans-serif;background:#0b1a24;color:#e8f0f5;max-width:640px;margin:0 auto;padding:18px}h1{font-size:20px}.r{padding:9px 12px;margin:6px 0;border-radius:8px;background:#12293a;border-left:5px solid #666}.ok{border-color:#7be05a}.no{border-color:#ff6b6b}.r small{display:block;color:#9db2c0;word-break:break-all}button{padding:12px 16px;border:0;border-radius:10px;background:#7be05a;font-weight:700;font-size:15px;margin-top:10px}</style></head><body>
+<h1>Diagnóstico de instalação</h1><div id="o"></div><button id="ins" hidden>📲 Instalar agora</button>
+<script>
+var o=document.getElementById('o'),ev=null;
+function add(ok,t,s){var d=document.createElement('div');d.className='r '+(ok?'ok':'no');d.innerHTML=(ok?'✅ ':'❌ ')+t+(s?'<small>'+s+'</small>':'');o.appendChild(d)}
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();ev=e;document.getElementById('ins').hidden=false;add(true,'O navegador liberou a instalação','Use o botão verde abaixo.')});
+document.getElementById('ins').onclick=function(){if(ev){ev.prompt();ev=null}};
+(async function(){
+ add(location.protocol==='https:','Endereço seguro (HTTPS)',location.href);
+ try{var r=await fetch('manifest.webmanifest',{cache:'no-store'}),t=await r.text(),m=JSON.parse(t);
+  add(true,'Manifesto encontrado e válido','tipo: '+r.headers.get('content-type'));
+  add(!!m.name&&!!m.start_url,'Nome e start_url','name='+m.name+' | start_url='+m.start_url);
+  add(m.display==='standalone'||m.display==='fullscreen'||m.display==='minimal-ui','Modo de exibição',m.display);
+  var sz=(m.icons||[]).map(function(i){return i.sizes}).join(', ');
+  for(var i=0;i<(m.icons||[]).length;i++){var ic=m.icons[i],q=await fetch(ic.src,{cache:'no-store'});var ct=q.headers.get('content-type')||'';add(q.ok&&ct.indexOf('image')===0,'Ícone '+ic.sizes+' ('+ic.purpose+')',ic.src+' → '+q.status+' '+ct)}
+  var sr=await fetch(m.start_url,{redirect:'manual',cache:'no-store'});add(sr.type!=='opaqueredirect'&&sr.status===200,'start_url abre sem redirecionar',m.start_url+' → '+(sr.type==='opaqueredirect'?'REDIRECIONA':sr.status));
+ }catch(e){add(false,'Manifesto NÃO encontrado ou inválido','Provavelmente o arquivo manifest.webmanifest não está na raiz do site. '+e.message)}
+ try{var sw=await fetch('sw.js',{cache:'no-store'}),st=await sw.text();add(sw.ok&&/addEventListener\('fetch'/.test(st),'Service worker (sw.js) encontrado',sw.status+' '+(sw.headers.get('content-type')||''));
+  var reg=await navigator.serviceWorker.register('sw.js');add(true,'Service worker registrado','escopo: '+reg.scope)}catch(e){add(false,'Service worker com problema',e.message)}
+ var sa=window.matchMedia('(display-mode: standalone)').matches;add(!sa,sa?'Você já está usando o app instalado':'Rodando no navegador (não instalado)','');
+ var ua=navigator.userAgent;if(/iPhone|iPad/.test(ua))add(false,'iPhone/iPad','Só instala pelo Safari: Compartilhar → Adicionar à Tela de Início.');
+ if(/Incognito|InPrivate/.test(ua))add(false,'Janela privada','Instalação não é oferecida em janela anônima.');
+ setTimeout(function(){if(!ev)add(false,'O navegador ainda não liberou "Instalar"','Se tudo acima está ✅, abra o site 2 vezes, use o Chrome/Edge atualizado (não aba anônima) e tente o menu ⋮ → Transmitir, salvar e compartilhar → Instalar página como app.')},4000);
+})();
+</script></body></html>

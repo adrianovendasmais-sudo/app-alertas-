@@ -71,6 +71,21 @@
 
   if (!API) { if (document.body) setup(); else document.addEventListener('DOMContentLoaded', function () { setup(); }); }
 
+
+  /* Botão "Instalar app" dentro do próprio aplicativo (quando o navegador permite) */
+  var instEv = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); instEv = e;
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return;
+    var b = document.createElement('button');
+    b.textContent = '📲 Instalar app';
+    b.style.cssText = 'position:fixed;right:14px;bottom:76px;z-index:150;padding:11px 16px;border:0;border-radius:999px;background:#7be05a;color:#0b1a24;font:700 14px Inter,system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.4);cursor:pointer';
+    b.onclick = function () { instEv.prompt(); instEv.userChoice.then(function () { b.remove(); instEv = null; }); };
+    var add = function () { document.body.appendChild(b); };
+    if (document.body) add(); else document.addEventListener('DOMContentLoaded', add);
+  });
+  window.addEventListener('appinstalled', function () { var x = document.querySelectorAll('button'); });
+
   window.google = { script: { run: mk(null, null) } };
   window.PWA_TROCAR_SERVIDOR = function () { try { localStorage.removeItem('pb_api'); } catch (e) {} location.reload(); };
 })();
